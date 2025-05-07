@@ -5,6 +5,9 @@ const {ccclass, property} = _decorator;
 @ccclass('PlayerController')
 export class PlayerController extends Component {
 
+    @property({type: Animation})
+    public BodyAnim: Animation | null = null;
+
     // 是否接收到跳跃指令
     private _startJump: boolean = false;
     // 跳跃步长
@@ -62,6 +65,15 @@ export class PlayerController extends Component {
         this.node.getPosition(this._curPos);
         // 目标位置 = 当前位置 + 步长
         Vec3.add(this._targetPos, this._curPos, new Vec3(this._jumpStep, 0, 0));
+
+        // 根据跳的步数不同来播放不同的动画
+        if (this.BodyAnim) {
+            if (step === 1) {
+                this.BodyAnim.play('oneStep');
+            } else if (step === 2) {
+                this.BodyAnim.play('twoStep');
+            }
+        }
     }
 
     update(deltaTime: number) {
