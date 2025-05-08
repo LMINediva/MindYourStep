@@ -1,4 +1,4 @@
-import {_decorator, Component, Prefab} from 'cc';
+import {_decorator, Component, Prefab, instantiate, Node, CCInteger} from 'cc';
 
 const {ccclass, property} = _decorator;
 
@@ -24,10 +24,55 @@ export class GameManager extends Component {
     }
 
     /**
-     * 生成赛道格子函数
+     * 生成赛道函数
      */
     generateRoad() {
+        // 防止游戏重新开始时，赛道还是旧的赛道
+        // 因此，需要移除旧赛道，清除旧赛道数据
+        this.node.removeAllChildren();
+        this._road = [];
+        // 确保游戏运行时，人物一定站在实路上
+        this._road.push(BlockType.BT_STONE);
 
+        // 确定好每一格赛道类型
+        for (let i = 1; i < this.roadLength; i++) {
+            // 如果上一格赛道是坑，那么这一格一定不能为坑
+            if (this._road[i - 1] === BlockType.BT_NONE) {
+                this._road.push(BlockType.BT_STONE);
+            } else {
+                this._road.push(Math.floor(Math.random() * 2));
+            }
+        }
+
+        // 根据赛道类型生成赛道
+        for (let j = 0; j < this._road.length; j++) {
+            let block: Node = this.spawnBlockByType(this._road[j]);
+            // 判断是否生成了道路，因为 spawnBlockByType 有可能返回坑（值为null）
+            if (block) {
+                this.node.addChild(block);
+                block.setPosition(j, -1.5, 0);
+            }
+        }
+    }
+
+    /**
+     * 生成赛道石块的函数
+     * @param type 赛道格子类型
+     */
+    spawnBlockByType(type: BlockType) {
+        if (!this.cubePrefab) {
+            return null;
+        }
+
+        let block: Node | null = null;
+        // 赛道类型为实路时才生成
+        switch (type) {
+            case BlockType.BT_STONE:
+                block = instantiate(this.cubePrefab);
+                break;
+        }
+
+        return block;
     }
 
     update(deltaTime: number) {
