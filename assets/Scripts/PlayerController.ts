@@ -26,8 +26,19 @@ export class PlayerController extends Component {
     private _targetPos: Vec3 = new Vec3();
 
     start() {
-        // 监听鼠标弹起事件
-        input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+
+    }
+
+    /**
+     * 动态地开启和关闭角色对鼠标消息的监听
+     * @param active 对鼠标消息的监听是否开启
+     */
+    setInputActive(active: boolean) {
+        if (active) {
+            input.on(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        } else {
+            input.off(Input.EventType.MOUSE_UP, this.onMouseUp, this);
+        }
     }
 
     /**

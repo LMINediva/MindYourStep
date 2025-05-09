@@ -1,4 +1,5 @@
 import {_decorator, Component, Prefab, instantiate, Node, CCInteger} from 'cc';
+import {PlayerController} from "db://assets/Scripts/PlayerController";
 
 const {ccclass, property} = _decorator;
 
@@ -6,6 +7,13 @@ const {ccclass, property} = _decorator;
 enum BlockType {
     BT_NONE,
     BT_STONE
+}
+
+// 游戏状态，初始化（GS_INIT）、游戏进行中（GS_PLAYING）或者结束（GS_END）
+enum GameState {
+    GS_INIT,
+    GS_PLAYING,
+    GS_END
 }
 
 @ccclass('GameManager')
@@ -18,6 +26,12 @@ export class GameManager extends Component {
     @property
     public roadLength = 50;
     private _road: BlockType[] = [];
+    // startMenu 节点的引用
+    @property({type: Node})
+    public startMenu: Node | null = null;
+    // PlayerController 脚本的引用
+    @property({type: PlayerController})
+    public playerCtrl: PlayerController | null = null;
 
     start() {
         this.generateRoad();
