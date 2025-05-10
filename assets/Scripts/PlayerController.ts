@@ -24,6 +24,8 @@ export class PlayerController extends Component {
     private _deltaPos: Vec3 = new Vec3(0, 0, 0);
     // 角色目标位置
     private _targetPos: Vec3 = new Vec3();
+    // 跳跃步数
+    private _curMoveIndex = 0;
 
     start() {
 
@@ -85,6 +87,14 @@ export class PlayerController extends Component {
                 this.BodyAnim.play('twoStep');
             }
         }
+        this._curMoveIndex += step;
+    }
+
+    /**
+     * 跳跃结束函数
+     */
+    onOnceJumpEnd() {
+        this.node.emit('JumpEnd', this._curMoveIndex);
     }
 
     update(deltaTime: number) {
@@ -97,6 +107,7 @@ export class PlayerController extends Component {
                 this.node.setPosition(this._targetPos);
                 // 标记跳跃结束
                 this._startJump = false;
+                this.onOnceJumpEnd();
             } else {
                 // 跳跃中
                 // 获取当前的位置

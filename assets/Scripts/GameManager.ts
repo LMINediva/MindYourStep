@@ -1,4 +1,4 @@
-import {_decorator, Component, Prefab, instantiate, Node, CCInteger} from 'cc';
+import {_decorator, Component, Prefab, instantiate, Node, CCInteger, Vec3} from 'cc';
 import {PlayerController} from "db://assets/Scripts/PlayerController";
 
 const {ccclass, property} = _decorator;
@@ -34,7 +34,48 @@ export class GameManager extends Component {
     public playerCtrl: PlayerController | null = null;
 
     start() {
+        this.curState = GameState.GS_INIT;
+    }
+
+    /**
+     * 初始化函数
+     */
+    init() {
+        // 激活主界面
+        if (this.startMenu) {
+            this.startMenu.active = true;
+        }
+        // 生成赛道
         this.generateRoad();
+        if (this.playerCtrl) {
+            // 禁止接收用户操作人物移动指令
+            this.playerCtrl.setInputActive(false);
+            // 重置人物位置
+            this.playerCtrl.node.setPosition(Vec3.ZERO);
+        }
+    }
+
+    set curState(value: GameState) {
+        switch (value) {
+            case GameState.GS_INIT:
+                this.init();
+                break;
+            case GameState.GS_PLAYING:
+                if (this.startMenu) {
+                    this.startMenu.active = false;
+                }
+                // 设置active为true时会直接开始监听鼠标事件，此时鼠标抬起事件还未派发
+                // 会出现的现象就是，游戏开始的瞬间人物已经开始移动
+                // 因此，这里需要做延时处理
+                setTimeout(() => {
+                    if (this.playerCtrl) {
+                        this.playerCtrl.setInputActive(true);
+                    }
+                }, 0.1);
+                break;
+            case GameState.GS_END:
+                break;
+        }
     }
 
     /**
@@ -87,6 +128,13 @@ export class GameManager extends Component {
         }
 
         return block;
+    }
+
+    /**
+     * Play按钮点击事件函数
+     */
+    onStartButtonClicked() {
+        this.curState = GameState.GS_PLAYING;
     }
 
     update(deltaTime: number) {
