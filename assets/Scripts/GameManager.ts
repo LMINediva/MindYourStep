@@ -1,4 +1,4 @@
-import {_decorator, Component, Prefab, instantiate, Node, CCInteger, Vec3} from 'cc';
+import {_decorator, Component, Prefab, instantiate, Node, Label, CCInteger, Vec3} from 'cc';
 import {PlayerController} from "db://assets/Scripts/PlayerController";
 
 const {ccclass, property} = _decorator;
@@ -32,9 +32,14 @@ export class GameManager extends Component {
     // PlayerController 脚本的引用
     @property({type: PlayerController})
     public playerCtrl: PlayerController | null = null;
+    // Steps 标签节点的引用
+    @property({type: Label})
+    public stepsLabel: Label | null = null;
 
     start() {
         this.curState = GameState.GS_INIT;
+        // 监听角色跳跃消息，并调用判断函数
+        this.playerCtrl?.node.on('JumpEnd', this.onPlayerJumpEnd, this);
     }
 
     /**
@@ -52,6 +57,8 @@ export class GameManager extends Component {
             this.playerCtrl.setInputActive(false);
             // 重置人物位置
             this.playerCtrl.node.setPosition(Vec3.ZERO);
+            // 重置跳跃步数
+            this.playerCtrl.reset();
         }
     }
 
@@ -63,6 +70,10 @@ export class GameManager extends Component {
             case GameState.GS_PLAYING:
                 if (this.startMenu) {
                     this.startMenu.active = false;
+                }
+                if (this.stepsLabel) {
+                    // 将步数重置为0
+                    this.stepsLabel.string = '0';
                 }
                 // 设置active为true时会直接开始监听鼠标事件，此时鼠标抬起事件还未派发
                 // 会出现的现象就是，游戏开始的瞬间人物已经开始移动
@@ -135,6 +146,34 @@ export class GameManager extends Component {
      */
     onStartButtonClicked() {
         this.curState = GameState.GS_PLAYING;
+    }
+
+    /**
+     * 监听跳跃结束事件函数
+     * @param moveIndex 跳跃步数索引
+     */
+    checkResult(moveIndex: number) {
+        if (moveIndex < this.roadLength) {
+            // 跳到了坑上
+            if (this._road[moveIndex] == BlockType.BT_NONE) {
+                this.curState = GameState.GS_INIT;
+            }
+        } else {
+            // 跳过了最大长度
+            this.curState = GameState.GS_INIT;
+        }
+    }
+
+    /**
+     * 响应角色跳跃的函数
+     * @param moveIndex 跳跃步数索引
+     */
+    onPlayerJumpEnd(moveIndex: number) {
+        if (this.stepsLabel) {
+            // 因为在最后一步可能出现步伐大的跳跃，但是此时无论跳跃是步伐大还是步伐小，都不应该多增加分数
+            this.stepsLabel.string = '' + (moveIndex >= this.roadLength ? this.roadLength : moveIndex);
+        }
+        this.checkResult(moveIndex);
     }
 
     update(deltaTime: number) {

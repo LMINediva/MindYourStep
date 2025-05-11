@@ -32,6 +32,13 @@ export class PlayerController extends Component {
     }
 
     /**
+     * 跳跃步数重置函数
+     */
+    reset() {
+        this._curMoveIndex = 0;
+    }
+
+    /**
      * 动态地开启和关闭角色对鼠标消息的监听
      * @param active 对鼠标消息的监听是否开启
      */
