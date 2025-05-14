@@ -1,12 +1,16 @@
-import {_decorator, Component, input, Input, EventMouse, Vec3, Animation} from 'cc';
+import {_decorator, Component, input, Input, EventMouse, Vec3, SkeletalAnimation} from 'cc';
 
 const {ccclass, property} = _decorator;
 
 @ccclass('PlayerController')
 export class PlayerController extends Component {
 
-    @property({type: Animation})
-    public BodyAnim: Animation | null = null;
+    // @property({type: Animation})
+    // public BodyAnim: Animation | null = null;
+
+    // 主角模型动画引用
+    @property({type: SkeletalAnimation})
+    public CocosAnim: SkeletalAnimation | null = null;
 
     // 是否接收到跳跃指令
     private _startJump: boolean = false;
@@ -15,7 +19,7 @@ export class PlayerController extends Component {
     // 当前跳跃时间
     private _curJumpTime: number = 0;
     // 每次跳跃时长
-    private _jumpTime: number = 0.1;
+    private _jumpTime: number = 0.3;
     // 当前跳跃速度
     private _curJumpSpeed: number = 0;
     // 当前角色位置
@@ -25,7 +29,7 @@ export class PlayerController extends Component {
     // 角色目标位置
     private _targetPos: Vec3 = new Vec3();
     // 跳跃步数
-    private _curMoveIndex = 0;
+    private _curMoveIndex: number = 0;
 
     start() {
 
@@ -85,14 +89,12 @@ export class PlayerController extends Component {
         this.node.getPosition(this._curPos);
         // 目标位置 = 当前位置 + 步长
         Vec3.add(this._targetPos, this._curPos, new Vec3(this._jumpStep, 0, 0));
-
-        // 根据跳的步数不同来播放不同的动画
-        if (this.BodyAnim) {
-            if (step === 1) {
-                this.BodyAnim.play('oneStep');
-            } else if (step === 2) {
-                this.BodyAnim.play('twoStep');
-            }
+        // 播放跳跃动画
+        if (this.CocosAnim) {
+            // 跳跃动画时间比较长，这里加速播放
+            this.CocosAnim.getState('cocos_anim_jump').speed = 3.5;
+            // 播放跳跃动画
+            this.CocosAnim.play('cocos_anim_jump');
         }
         this._curMoveIndex += step;
     }
@@ -101,6 +103,10 @@ export class PlayerController extends Component {
      * 跳跃结束函数
      */
     onOnceJumpEnd() {
+        // 主角变为待机状态，播放待机动画
+        if (this.CocosAnim) {
+            this.CocosAnim.play('cocos_anim_idle');
+        }
         this.node.emit('JumpEnd', this._curMoveIndex);
     }
 

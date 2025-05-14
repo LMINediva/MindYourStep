@@ -24,7 +24,7 @@ export class GameManager extends Component {
     public cubePrefab: Prefab | null = null;
     // 赛道长度
     @property
-    public roadLength = 50;
+    public roadLength: Number = 50;
     private _road: BlockType[] = [];
     // startMenu 节点的引用
     @property({type: Node})
@@ -174,10 +174,6 @@ export class GameManager extends Component {
             this.stepsLabel.string = '' + (moveIndex >= this.roadLength ? this.roadLength : moveIndex);
         }
         this.checkResult(moveIndex);
-    }
-
-    update(deltaTime: number) {
-
     }
 
 }
